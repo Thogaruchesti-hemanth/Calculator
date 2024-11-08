@@ -145,17 +145,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private double evaluateExpression(String expression) {
-        // Step 1: Perform multiplication and division
-        expression = handleMultiplicationDivision(expression);
-
-        // Step 2: Perform addition and subtraction
-        return handleAdditionSubtraction(expression);
-    }
-
-    private String handleMultiplicationDivision(String expression) {
         Stack<Double> numbers = new Stack<>();
-        Stack<Character> operators = new Stack<>();
+        char lastOperator = '+'; // Tracks the last operation
         int i = 0;
+
         while (i < expression.length()) {
             char currentChar = expression.charAt(i);
 
@@ -165,65 +158,34 @@ public class MainActivity extends AppCompatActivity {
                     num.append(expression.charAt(i));
                     i++;
                 }
-                numbers.push(Double.parseDouble(num.toString()));
-            } else if (currentChar == '*' || currentChar == '/') {
-                char operator = currentChar;
-                i++;
-                double nextNum = 0;
-                StringBuilder num = new StringBuilder();
-                while (i < expression.length() && (Character.isDigit(expression.charAt(i)) || expression.charAt(i) == '.')) {
-                    num.append(expression.charAt(i));
-                    i++;
-                }
-                nextNum = Double.parseDouble(num.toString());
+                double currentNumber = Double.parseDouble(num.toString());
 
-                if (operator == '*') {
-                    numbers.push(numbers.pop() * nextNum);
-                } else {
-                    numbers.push(numbers.pop() / nextNum);
+                // Apply the last operator
+                if (lastOperator == '+') {
+                    numbers.push(currentNumber);
+                } else if (lastOperator == '-') {
+                    numbers.push(-currentNumber);
+                } else if (lastOperator == '*') {
+                    numbers.push(numbers.pop() * currentNumber);
+                } else if (lastOperator == '/') {
+                    numbers.push(numbers.pop() / currentNumber);
                 }
+            } else if (currentChar == '+' || currentChar == '-' || currentChar == '*' || currentChar == '/') {
+                lastOperator = currentChar;
+                i++;
             } else {
                 i++;
             }
         }
 
-        StringBuilder resultExpression = new StringBuilder();
-        while (!numbers.isEmpty()) {
-            resultExpression.insert(0, numbers.pop());
-        }
-
-        return resultExpression.toString();
-    }
-
-    private double handleAdditionSubtraction(String expression) {
+        // Sum all elements in the stack to get the final result
         double result = 0;
-        int i = 0;
-        boolean isPositive = true;
-
-        while (i < expression.length()) {
-            char currentChar = expression.charAt(i);
-
-            if (Character.isDigit(currentChar) || currentChar == '.') {
-                StringBuilder num = new StringBuilder();
-                while (i < expression.length() && (Character.isDigit(expression.charAt(i)) || expression.charAt(i) == '.')) {
-                    num.append(expression.charAt(i));
-                    i++;
-                }
-                if (isPositive) {
-                    result += Double.parseDouble(num.toString());
-                } else {
-                    result -= Double.parseDouble(num.toString());
-                }
-            } else if (currentChar == '+' || currentChar == '-') {
-                isPositive = currentChar == '+';
-                i++;
-            } else {
-                i++;
-            }
+        for (double num : numbers) {
+            result += num;
         }
-
         return result;
     }
+
 
     public void onClearClick(View view) {
         currentInput.setLength(0);
